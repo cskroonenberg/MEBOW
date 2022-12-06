@@ -51,19 +51,6 @@ def parse_args():
                         default=None,
                         nargs=argparse.REMAINDER)
 
-    # preprocessing
-    parser.add_argument('--equalization',
-                        action='store_true',
-                        help='set to include histogram equalization as a preprocessing step on the dataset')
-
-    parser.add_argument('--gaussian_blur',
-                        action='store_true',
-                        help='set to include gaussian blur as a preprocessing step on the dataset')
-
-    parser.add_argument('--unsharp_masking',
-                        action='store_true',
-                        help='set to include unsharp masking (inverse gaussian blur) as a preprocessing step on the dataset')
-
     # philly
     parser.add_argument('--modelDir',
                         help='model directory',
@@ -93,24 +80,6 @@ def parse_args():
 def main():
     args = parse_args()
     update_config(cfg, args)
-
-    # Preprocessing options
-    equalization = vars(args)['equalization']
-    gaussian_blur = vars(args)['gaussian_blur']
-    unsharp_masking = vars(args)['unsharp_masking']
-
-    transforms_compose = [
-        transforms.ToTensor(),
-        normalize
-    ]
-
-    # Include preprocessing options to dataset transforms
-    if equalization: # Histogram Equalization
-        transforms_compose.append(transforms.equalize())
-    if gaussian_blur: # Gaussian blur
-        transforms_compose.append(transforms.GaussianBlur(9, sigma=(0.1, 2.0)))
-    if unsharp_masking: # Unsharp Masking
-        transforms_compose.append(UnsharpMasking())
 
     logger, final_output_dir, tb_log_dir = create_logger(
         cfg, args.cfg, 'train')
@@ -152,13 +121,17 @@ def main():
 
     # load pretrained model
 
-    # pre_model = '/home/cchw/coding/important_model/amazon_model/gray_HM3.6_MPII_with_HOE.pth'
-    # logger.info("=> loading checkpoint '{}'".format(pre_model))
-    # checkpoint = torch.load(pre_model)
-    # if 'state_dict' in checkpoint:
-    #     model.load_state_dict(checkpoint['state_dict'], strict=True)
-    # else:
-    #     model.load_state_dict(checkpoint, strict=True)
+    checkpoint_file = os.path.join(
+        final_output_dir, 'model_best.pth'
+    )
+
+    pre_model = '/home/cchw/coding/important_model/amazon_model/gray_HM3.6_MPII_with_HOE.pth'
+    logger.info("=> loading checkpoint '{}'".format(pre_model))
+    checkpoint = torch.load(pre_model)
+    if 'state_dict' in checkpoint:
+        model.load_state_dict(checkpoint['state_dict'], strict=True)
+    else:
+        model.load_state_dict(checkpoint, strict=True)
 
     model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
 
@@ -174,24 +147,30 @@ def main():
         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     )
 
-    # train_dataset = eval('dataset.'+cfg.DATASET.DATASET)(
-    #     cfg, cfg.DATASET.TRAIN_ROOT, True,
-    #     transforms.Compose([
-    #         transforms.ToTensor(),
-    #         normalize,
-    #     ])
-    # )
+    # Dataset transforms
+    transforms_compose = [
+        transforms.ToTensor(),
+        normalize
+    ]
+
+    # Include preprocessing options to dataset transforms
+    if cfg.DATASET.PREPROCESSING.EQUALIZATION: # Histogram Equalization
+        transforms_compose.append(transforms.equalize())
+    if cfg.DATASET.PREPROCESSING.GAUSSIAN_BLUR: # Gaussian blur
+        transforms_compose.append(transforms.GaussianBlur(9, sigma=(0.1, 2.0)))
+    if cfg.DATASET.PREPROCESSING.UNSHARP_MASKING: # Unsharp Masking
+        transforms_compose.append(UnsharpMasking())
 
     train_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, True, transforms.Compose([transforms_compose]))
 
-    # Make subset of 1/10th size of original dataset for process validation (and time constraints)
+    # Make subset of 1/10 size of original dataset for process validation (and time constraints)
     print('trainset size: {}'.format(len(train_dataset)))
     train_dataset = torch.utils.data.Subset(train_dataset, list(range(0,len(train_dataset), 10)))
     print('sub-trainset size: {}'.format(len(train_dataset)))
 
     valid_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, False, transforms.Compose([transforms_compose]))
 
-    # Make subset of 1/10th size of original dataset for process validation (and time constraints)
+    # Make subset of 1/2 size of original dataset for process validation (and time constraints)
     print('valset size: {}'.format(len(valid_dataset)))
     valid_dataset = torch.utils.data.Subset(valid_dataset, list(range(0,len(valid_dataset), 2)))
     print('sub-valset size: {}'.format(len(valid_dataset)))

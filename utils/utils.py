@@ -28,6 +28,13 @@ def create_logger(cfg, cfg_name, phase='train'):
 
     final_output_dir = root_output_dir / dataset / model / cfg_name
 
+    if cfg.DATASET.PREPROCESSING.EQUALIZATION: # Histogram Equalization
+        final_output_dir = final_output_dir + "_equalization"
+    if cfg.DATASET.PREPROCESSING.GAUSSIAN_BLUR: # Gaussian blur
+        final_output_dir = final_output_dir + "_gaussian_blur"
+    if cfg.DATASET.PREPROCESSING.UNSHARP_MASKING: # Unsharp Masking
+        final_output_dir = final_output_dir + "_unsharp_masking"
+
     print('=> creating {}'.format(final_output_dir))
     final_output_dir.mkdir(parents=True, exist_ok=True)
 
