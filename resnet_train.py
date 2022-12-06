@@ -121,11 +121,7 @@ def main():
 
     # load pretrained model
 
-    checkpoint_file = os.path.join(
-        final_output_dir, 'model_best.pth'
-    )
-
-    pre_model = '/home/cchw/coding/important_model/amazon_model/gray_HM3.6_MPII_with_HOE.pth'
+    pre_model = os.path.join(final_output_dir, 'model_best.pth')
     logger.info("=> loading checkpoint '{}'".format(pre_model))
     checkpoint = torch.load(pre_model)
     if 'state_dict' in checkpoint:
