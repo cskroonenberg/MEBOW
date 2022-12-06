@@ -1,5 +1,5 @@
-# MEBOW
-### Human Body Orientation Estimation
+# MEBOW_ResNet
+### ResNet model for Human Body Orientation Estimation
 ## Introduction
 This is a ResNet implementation for [*MEBOW: Monocular Estimation of Body Orientation In the Wild*](https://openaccess.thecvf.com/content_CVPR_2020/papers/Wu_MEBOW_Monocular_Estimation_of_Body_Orientation_in_the_Wild_CVPR_2020_paper.pdf).
 
