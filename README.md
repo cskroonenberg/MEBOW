@@ -1,8 +1,9 @@
 # MEBOW
 ### Human Body Orientation Estimation
 ## Introduction
-This is an official pytorch implementation of [*MEBOW: Monocular Estimation of Body Orientation In the Wild*](https://openaccess.thecvf.com/content_CVPR_2020/papers/Wu_MEBOW_Monocular_Estimation_of_Body_Orientation_in_the_Wild_CVPR_2020_paper.pdf). 
-In this work, we present COCO-MEBOW (Monocular Estimation of Body Orientation in the Wild), a new large-scale dataset for orientation estimation from a single in-the-wild image. Based on COCO-MEBOW, we established a simple baseline model for human body orientation estimation. This repo provides the code.
+This is a ResNet implementation for [*MEBOW: Monocular Estimation of Body Orientation In the Wild*](https://openaccess.thecvf.com/content_CVPR_2020/papers/Wu_MEBOW_Monocular_Estimation_of_Body_Orientation_in_the_Wild_CVPR_2020_paper.pdf).
+
+In the original work, COCO-MEBOW (Monocular Estimation of Body Orientation in the Wild), a new large-scale dataset for orientation estimation from a single in-the-wild image was presented. Based on COCO-MEBOW, a simple baseline model for human body orientation estimation was established using an HRNet backbone and ResNet head. This repo provides the code for the original model as well as an implementation of vanilla ResNet for testing purposes.
 
 ## Quick start
 ### Installation
@@ -35,15 +36,21 @@ In this work, we present COCO-MEBOW (Monocular Estimation of Body Orientation in
 
    ```
    ${HBOE_ROOT}
+   ├── config
+   ├── core
    ├── data
    ├── experiments
-   ├── lib
+   ├── images
    ├── log
    ├── models
    ├── output
-   ├── tools 
+   ├── tools
+   ├── utils
+   ├── .gitignore
+   ├── index.md
    ├── README.md
-   └── requirements.txt
+   ├── requirements.txt
+   └── resnet_train.py
    ```
 
 6. Download pretrained models from the model zoo provided by [HRnet](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch)([GoogleDrive](https://drive.google.com/drive/folders/1hOTihvbyIxsm5ygDpbUuJ7O_tzv4oXjC?usp=sharing) or [OneDrive](https://1drv.ms/f/s!AhIXJn_J-blW231MH2krnmLq5kkQ))
@@ -96,11 +103,15 @@ ${HBOE_ROOT}
 We also provide the trained HBOE model (MEBOW as training set). ([OneDrive](https://pennstateoffice365-my.sharepoint.com/:f:/g/personal/czw390_psu_edu/EoXLPTeNqHlCg7DgVvmRrDgB_DpkEupEUrrGATpUdvF6oQ?e=CQQ2KY))
 ### Training and Testing
 
-#### Traing on MEBOW dataset
+#### Training original model on MEBOW dataset
 ```
 python tools/train.py --cfg experiments/coco/segm-4_lr1e-3.yaml
 ```
-#### Traing on TUD dataset
+#### Training ResNet model on MEBOW dataset
+```
+python resnet_train.py --cfg experiments/coco/resnet_train.yaml
+```
+#### Training original model on TUD dataset
 ```
 python tools/train.py --cfg experiments/tud/lr1e-3.yaml
 ```
@@ -110,10 +121,11 @@ You should change TEST:MODEL_FILE to your own in "experiments/coco/segm-4_lr1e-3
 python tools/test.py --cfg experiments/coco/segm-4_lr1e-3.yaml
 ```
 ### Acknowledgement
-This repo is based on [HRnet](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch).
+This repo is a fork from the original work on [MEBOW](https://github.com/ChenyanWu/MEBOW).
+The original repo is based on [HRnet](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch).
 
 ### Citation
-If you use our dataset or models in your research, please cite with:
+If you use the MEBOW dataset or models in your research, please cite with:
 ```
 @inproceedings{wu2020mebow,
   title={MEBOW: Monocular Estimation of Body Orientation In the Wild},
