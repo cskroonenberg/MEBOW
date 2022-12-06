@@ -108,13 +108,13 @@ def main():
         logger.info('=> loading model from {}'.format(model_state_file))
         model.load_state_dict(torch.load(model_state_file))
 
-    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
+    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS)#.cuda()
 
     criterions = {}
     criterions['2d_pose_loss'] = JointsMSELoss(
         use_target_weight=cfg.LOSS.USE_TARGET_WEIGHT
-    ).cuda()
-    criterions['hoe_loss'] = torch.nn.MSELoss().cuda()
+    )#.cuda()
+    criterions['hoe_loss'] = torch.nn.MSELoss()#.cuda()
 
     # Data loading code
     normalize = transforms.Normalize(

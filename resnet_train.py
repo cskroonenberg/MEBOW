@@ -133,14 +133,14 @@ def main():
     else:
         model.load_state_dict(checkpoint, strict=True)
 
-    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
+    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS)#.cuda()
 
     # criterions = nn.CrossEntropyLoss()
     criterions = {}
     criterions['2d_pose_loss'] = JointsMSELoss(
         use_target_weight=cfg.LOSS.USE_TARGET_WEIGHT
-    ).cuda()
-    criterions['hoe_loss'] = torch.nn.MSELoss().cuda()
+    )#.cuda()
+    criterions['hoe_loss'] = torch.nn.MSELoss()#.cuda()
 
     # Data loading code
     normalize = transforms.Normalize(
