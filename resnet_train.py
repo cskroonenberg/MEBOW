@@ -32,6 +32,7 @@ from utils.utils import get_optimizer
 from utils.utils import save_checkpoint
 from utils.utils import create_logger
 from utils.utils import get_model_summary
+from utils.unsharp_masking import UnsharpMasking
 
 import dataset
 import models.resnet as resnet
@@ -49,6 +50,19 @@ def parse_args():
                         help="Modify config options using the command-line",
                         default=None,
                         nargs=argparse.REMAINDER)
+
+    # preprocessing
+    parser.add_argument('--equalization',
+                        action='store_true',
+                        help='set to include histogram equalization as a preprocessing step on the dataset')
+
+    parser.add_argument('--gaussian_blur',
+                        action='store_true',
+                        help='set to include gaussian blur as a preprocessing step on the dataset')
+
+    parser.add_argument('--unsharp_masking',
+                        action='store_true',
+                        help='set to include unsharp masking (inverse gaussian blur) as a preprocessing step on the dataset')
 
     # philly
     parser.add_argument('--modelDir',
@@ -80,6 +94,24 @@ def main():
     args = parse_args()
     update_config(cfg, args)
 
+    # Preprocessing options
+    equalization = vars(args)['equalization']
+    gaussian_blur = vars(args)['gaussian_blur']
+    unsharp_masking = vars(args)['unsharp_masking']
+
+    transforms_compose = [
+        transforms.ToTensor(),
+        normalize
+    ]
+
+    # Include preprocessing options to dataset transforms
+    if equalization: # Histogram Equalization
+        transforms_compose.append(transforms.equalize())
+    if gaussian_blur: # Gaussian blur
+        transforms_compose.append(transforms.GaussianBlur(9, sigma=(0.1, 2.0)))
+    if unsharp_masking: # Unsharp Masking
+        transforms_compose.append(UnsharpMasking())
+
     logger, final_output_dir, tb_log_dir = create_logger(
         cfg, args.cfg, 'train')
 
@@ -92,6 +124,8 @@ def main():
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
 
     model = resnet.ResNet50(num_classes=72)
+
+    # TODO: Add support for selecting between resnet & HRNet in config
     #model = eval('models.'+cfg.MODEL.NAME+'.get_pose_net')(
     #    cfg, is_train=True
     #)
@@ -148,25 +182,14 @@ def main():
     #     ])
     # )
 
-    train_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, True,
-        transforms.Compose([
-                transforms.ToTensor(),
-                normalize,
-            ])
-    )
+    train_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, True, transforms.Compose([transforms_compose]))
 
     # Make subset of 1/10th size of original dataset for process validation (and time constraints)
     print('trainset size: {}'.format(len(train_dataset)))
     train_dataset = torch.utils.data.Subset(train_dataset, list(range(0,len(train_dataset), 10)))
     print('sub-trainset size: {}'.format(len(train_dataset)))
 
-    valid_dataset = eval('dataset.' + cfg.DATASET.DATASET)(
-        cfg, cfg.DATASET.VAL_ROOT, False,
-        transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
-        ])
-    )
+    valid_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, False, transforms.Compose([transforms_compose]))
 
     # Make subset of 1/10th size of original dataset for process validation (and time constraints)
     print('valset size: {}'.format(len(valid_dataset)))
