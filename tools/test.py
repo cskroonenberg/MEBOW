@@ -40,7 +40,7 @@ from utils.utils import create_logger
 from utils.utils import get_model_summary
 
 import dataset
-import models
+import models.resnet as resnet
 
 
 def parse_args():
@@ -94,9 +94,10 @@ def main():
     torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
 
-    model = eval('models.'+cfg.MODEL.NAME+'.get_pose_net')(
-        cfg, is_train=False
-    )
+    model = resnet.ResNet50(num_classes=72)
+    #model = eval('models.'+cfg.MODEL.NAME+'.get_pose_net')(
+    #    cfg, is_train=False
+    #)
 
     if cfg.TEST.MODEL_FILE:
         logger.info('=> loading model from {}'.format(cfg.TEST.MODEL_FILE))
@@ -108,13 +109,13 @@ def main():
         logger.info('=> loading model from {}'.format(model_state_file))
         model.load_state_dict(torch.load(model_state_file))
 
-    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS)#.cuda()
+    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
 
     criterions = {}
     criterions['2d_pose_loss'] = JointsMSELoss(
         use_target_weight=cfg.LOSS.USE_TARGET_WEIGHT
-    )#.cuda()
-    criterions['hoe_loss'] = torch.nn.MSELoss()#.cuda()
+    ).cuda()
+    criterions['hoe_loss'] = torch.nn.MSELoss().cuda()
 
     # Data loading code
     normalize = transforms.Normalize(
