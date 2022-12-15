@@ -1,7 +1,7 @@
 # MEBOW_ResNet
 ### ResNet model for Human Body Orientation Estimation
 ## Introduction
-This is a ResNet implementation for [*MEBOW: Monocular Estimation of Body Orientation In the Wild*](https://openaccess.thecvf.com/content_CVPR_2020/papers/Wu_MEBOW_Monocular_Estimation_of_Body_Orientation_in_the_Wild_CVPR_2020_paper.pdf).
+This is a ResNet implementation for [*MEBOW: Monocular Estimation of Body Orientation In the Wild*](https://openaccess.thecvf.com/content_CVPR_2020/papers/Wu_MEBOW_Monocular_Estimation_of_Body_Orientation_in_the_Wild_CVPR_2020_paper.pdf). This variation of the original MEBOW work was done as part of a final project for EECS 731: Intro to Data Science, instructed by Dr. Hongyang Sun at The University of Kansas. See the `doc` folder for more information.
 
 In the original work, COCO-MEBOW (Monocular Estimation of Body Orientation in the Wild), a new large-scale dataset for orientation estimation from a single in-the-wild image was presented. Based on COCO-MEBOW, a simple baseline model for human body orientation estimation was established using an HRNet backbone and ResNet head. This repo provides the code for the original model as well as an implementation of vanilla ResNet for testing purposes.
 
@@ -104,6 +104,7 @@ We also provide the trained HBOE model (MEBOW as training set). ([OneDrive](http
 ### Training and Testing
 
 #### Training original model on MEBOW dataset
+Note: Gaussian blur, histogram equalization, and unsharp masking may all be applied by modifying the PREPROCESSING section in a config file
 ```
 python tools/train.py --cfg experiments/coco/segm-4_lr1e-3.yaml
 ```
