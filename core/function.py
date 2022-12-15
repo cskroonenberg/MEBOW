@@ -66,9 +66,9 @@ def train(config, train_loader, train_dataset, model, criterions, optimizer, epo
         hoe_output = model(input)
 
         # change to cuda format
-        # target = target.cuda(non_blocking=True)
-        # target_weight = target_weight.cuda(non_blocking=True)
-        # degree = degree.cuda(non_blocking=True)
+        target = target.cuda(non_blocking=True)
+        target_weight = target_weight.cuda(non_blocking=True)
+        degree = degree.cuda(non_blocking=True)
 
         # compute loss
         #if config.LOSS.USE_ONLY_HOE:
@@ -164,9 +164,9 @@ def validate(config, val_loader, val_dataset, model, criterions,  output_dir,
             hoe_output = model(input)
 
             # change to cuda format
-            # target = target.cuda(non_blocking=True)
-            # target_weight = target_weight.cuda(non_blocking=True)
-            # degree = degree.cuda(non_blocking=True)
+            target = target.cuda(non_blocking=True)
+            target_weight = target_weight.cuda(non_blocking=True)
+            degree = degree.cuda(non_blocking=True)
 
             # compute loss
             loss_hoe = criterions['hoe_loss'](hoe_output, degree)
