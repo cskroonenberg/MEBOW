@@ -8,19 +8,11 @@ from torch import Tensor
 #a manually defined kernel and going through the image by hand
 
 class UnsharpMasking(torch.nn.Module):
-    """Blurs image with randomly chosen Gaussian blur.
-    If the image is torch Tensor, it is expected
-    to have [..., C, H, W] shape, where ... means an arbitrary number of leading dimensions.
-
-    Args:
-        kernel_size (int or sequence): Size of the Gaussian kernel.
-        sigma (float or tuple of float (min, max)): Standard deviation to be used for
-            creating kernel to perform blurring. If float, sigma is fixed. If it is tuple
-            of float (min, max), sigma is chosen uniformly at random to lie in the
-            given range.
+    """Apply gaussian blur to an image, and subtract the result from the original to sharpen at
+	    the cost of continuity. 
 
     Returns:
-        PIL Image or Tensor: Gaussian blurred version of the input image.
+        PIL Image or Tensor: Unsharp masking version of the input image.
 
     """
 
