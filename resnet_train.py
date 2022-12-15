@@ -120,23 +120,22 @@ def main():
     logger.info(get_model_summary(model, dump_input))
 
     # load pretrained model
+    # pre_model = os.path.join(final_output_dir, 'model_best.pth')
+    # logger.info("=> loading checkpoint '{}'".format(pre_model))
+    # checkpoint = torch.load(pre_model)
+    # if 'state_dict' in checkpoint:
+    #     model.load_state_dict(checkpoint['state_dict'], strict=True)
+    # else:
+    #     model.load_state_dict(checkpoint, strict=True)
 
-    pre_model = os.path.join(final_output_dir, 'model_best.pth')
-    logger.info("=> loading checkpoint '{}'".format(pre_model))
-    checkpoint = torch.load(pre_model)
-    if 'state_dict' in checkpoint:
-        model.load_state_dict(checkpoint['state_dict'], strict=True)
-    else:
-        model.load_state_dict(checkpoint, strict=True)
-
-    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS)#.cuda()
+    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
 
     # criterions = nn.CrossEntropyLoss()
     criterions = {}
     criterions['2d_pose_loss'] = JointsMSELoss(
         use_target_weight=cfg.LOSS.USE_TARGET_WEIGHT
-    )#.cuda()
-    criterions['hoe_loss'] = torch.nn.MSELoss()#.cuda()
+    ).cuda()
+    criterions['hoe_loss'] = torch.nn.MSELoss().cuda()
 
     # Data loading code
     normalize = transforms.Normalize(
@@ -150,37 +149,29 @@ def main():
     ]
 
     # Include preprocessing options to dataset transforms
-    if cfg.DATASET.PREPROCESSING.EQUALIZATION: # Histogram Equalization
-        transforms_compose.append(transforms.equalize())
-    if cfg.DATASET.PREPROCESSING.GAUSSIAN_BLUR: # Gaussian blur
+    if cfg.PREPROCESSING.EQUALIZATION: # Histogram Equalization
+        #transforms_compose.append(transforms.functional.equalize)
+        transforms_compose.insert(0, transforms.functional.equalize)
+        transforms_compose.insert(0, transforms.ToPILImage())
+    if cfg.PREPROCESSING.GAUSSIAN_BLUR: # Gaussian blur
         transforms_compose.append(transforms.GaussianBlur(9, sigma=(0.1, 2.0)))
-    if cfg.DATASET.PREPROCESSING.UNSHARP_MASKING: # Unsharp Masking
+    if cfg.PREPROCESSING.UNSHARP_MASKING: # Unsharp Masking
         transforms_compose.append(UnsharpMasking())
 
     train_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, True, transforms.Compose([transforms_compose]))
 
-    # Make subset of 1/10 size of original dataset for process validation (and time constraints)
-    print('trainset size: {}'.format(len(train_dataset)))
-    train_dataset = torch.utils.data.Subset(train_dataset, list(range(0,len(train_dataset), 10)))
-    print('sub-trainset size: {}'.format(len(train_dataset)))
-
     valid_dataset = dataset.COCO_HOE_Dataset(cfg, cfg.DATASET.TRAIN_ROOT, False, transforms.Compose([transforms_compose]))
-
-    # Make subset of 1/2 size of original dataset for process validation (and time constraints)
-    print('valset size: {}'.format(len(valid_dataset)))
-    valid_dataset = torch.utils.data.Subset(valid_dataset, list(range(0,len(valid_dataset), 2)))
-    print('sub-valset size: {}'.format(len(valid_dataset)))
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
-        batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU,
+        batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU*len(cfg.GPUS),
         shuffle=cfg.TRAIN.SHUFFLE,
         num_workers=cfg.WORKERS,
         pin_memory=cfg.PIN_MEMORY
     )
     valid_loader = torch.utils.data.DataLoader(
         valid_dataset,
-        batch_size=cfg.TEST.BATCH_SIZE_PER_GPU,
+        batch_size=cfg.TEST.BATCH_SIZE_PER_GPU*len(cfg.GPUS),
         shuffle=False,
         num_workers=cfg.WORKERS,
         pin_memory=cfg.PIN_MEMORY
